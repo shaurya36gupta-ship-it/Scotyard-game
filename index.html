@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scotyard Enhanced</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #111;
+      color: #fff;
+    }
+    #game {
+      position: relative;
+      width: 600px;
+      background: url('map_resized.jpg') no-repeat center center;
+      background-size: cover;
+      margin-top: 20px;
+      height: auto;
+    }
+    .node {
+      width: 30px;
+      height: 30px;
+      background: rgba(255,255,255,0.8);
+      color: #000;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      position: absolute;
+      cursor: pointer;
+      user-select: none;
+    }
+    .detective {
+      background-color: #2196f3;
+      color: white;
+    }
+    .mrX {
+      background-color: #333;
+      color: white;
+    }
+    #info {
+      margin-top: 10px;
+      text-align: center;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scotyard Enhanced</h1>
+  <div id="game"></div>
+  <div id="info">
+    <div id="status">Turn: 0</div>
+    <button onclick="resetGame()">Restart</button>
+  </div>
+  <script>
+    const game = document.getElementById('game');
+    const status = document.getElementById('status');
+    const revealTurns = [3, 6, 9];
+    let turn = 0;
+
+    const nodes = [
+      { id: 1, x: 50, y: 30 },
+      { id: 2, x: 200, y: 60 },
+      { id: 3, x: 350, y: 50 },
+      { id: 4, x: 100, y: 130 },
+      { id: 5, x: 250, y: 120 },
+      { id: 6, x: 400, y: 130 },
+      { id: 7, x: 150, y: 200 },
+      { id: 8, x: 300, y: 190 },
+    ];
+
+    const connections = {
+      1: [2, 4],
+      2: [1, 3, 5],
+      3: [2, 6],
+      4: [1, 5, 7],
+      5: [2, 4, 6, 8],
+      6: [3, 5],
+      7: [4, 8],
+      8: [5, 7]
+    };
+
+    let detectivePos = 1;
+    let mrXPos = 6;
+
+    function drawGame() {
+      game.innerHTML = '';
+      nodes.forEach(node => {
+        const el = document.createElement('div');
+        el.classList.add('node');
+        el.style.left = node.x + 'px';
+        el.style.top = node.y + 'px';
+        el.textContent = node.id;
+
+        if (node.id === detectivePos) {
+          el.classList.add('detective');
+        } else if (node.id === mrXPos && revealTurns.includes(turn)) {
+          el.classList.add('mrX');
+          el.textContent = 'X';
+        }
+
+        if (connections[detectivePos].includes(node.id)) {
+          el.addEventListener('click', () => moveDetective(node.id));
+        }
+
+        game.appendChild(el);
+      });
+    }
+
+    function moveDetective(newPos) {
+      detectivePos = newPos;
+      turn++;
+      if (detectivePos === mrXPos) {
+        alert('Detective caught Mr. X!');
+        resetGame();
+        return;
+      }
+      if (turn >= 10) {
+        alert('Mr. X escaped!');
+        resetGame();
+        return;
+      }
+      moveMrX();
+      drawGame();
+      status.textContent = 'Turn: ' + turn;
+    }
+
+    function moveMrX() {
+      const options = connections[mrXPos].filter(n => n !== detectivePos);
+      if (options.length > 0) {
+        mrXPos = options[Math.floor(Math.random() * options.length)];
+      }
+    }
+
+    function resetGame() {
+      detectivePos = 1;
+      mrXPos = 6;
+      turn = 0;
+      drawGame();
+      status.textContent = 'Turn: 0';
+    }
+
+    drawGame();
+  </script>
+</body>
+</html>
